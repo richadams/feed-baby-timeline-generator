@@ -13,6 +13,9 @@ $_configFiles = array(
 );
 $_dateFormat   = 'H:i:s m-d-Y'; // Format used in the CSV.
 
+// Data Config
+$_forceDate    = false; // Set this to new DateTime('YYYY-MM-DD') if you only want up to certain date.
+
 // Output Image Config
 $_dayWidth     = 20;     // Pixels each day takes up in width.
 $_yOffset      = 50;     // Pixels width for y-axis labels.
@@ -171,6 +174,9 @@ $excretions = loadData($_configFiles["excretions"], function($data)
 // Get the latest date we have data for. Consider this "today".
 list($_birthDate, $_todayDate) = getFirstAndLastDates(array($sleeps, $feeds, $excretions));
 
+// Force last date if user wants us to.
+if ($_forceDate !== false) { $_todayDate = $_forceDate; }
+
 // Get the number of days we're going to be using in our timeline image.
 $_numberOfDays = $_birthDate->diff($_todayDate)->days + 1; // +1 because inclusive of end day.
 
@@ -238,7 +244,7 @@ if ($_hourMarkers)
 // Draw week lines
 if ($_weekMarkers)
 {
-  foreach (range(1, 25) as $wk)
+  foreach (range(1, floor($_numberOfDays/7)) as $wk)
   {
     $xPos = $wk * 7 * $_dayWidth;
     imagefilledrectangle($im, $_xOffset + $xPos, 0, $_xOffset + $xPos + 2, $height, $clrMarker);
@@ -248,7 +254,7 @@ if ($_weekMarkers)
 // Draw 4wk markers
 if ($_4WeekMarkers)
 {
-  foreach (range(0, 6) as $wk)
+  foreach (range(0, floor(($_numberOfDays/7)/4)) as $wk)
   {
     $xPos = $wk * 7 * 4 * $_dayWidth;
     imagefilledrectangle($im, $_xOffset + $xPos, 0, $_xOffset + $xPos + 2, $height, $clrMarker);
@@ -264,7 +270,7 @@ if ($_labels)
   }
 
   // Week labels
-  foreach (range(0, 30, 4) as $wk)
+  foreach (range(0, floor($_numberOfDays/7), 4) as $wk)
   {
     imagettftext($im, 30, 0, $wk * 7 * $_dayWidth + 60,  40, $clrText, './arial.ttf', ($wk == 0) ? 'Birth' : 'Week '.$wk);
   }
